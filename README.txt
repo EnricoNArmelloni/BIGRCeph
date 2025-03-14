@@ -1,8 +1,8 @@
-This folder contains the data and the code accompaining the manuscript "".
+# Welcome to the BIGRCeph GitHub repository
 
-Please send issues and questions to: enrico.e.armelloni@gmail.com
+## Structure of the folder
 
-The folder "code" contains the subfolders "R" and "stan".
+### Code "code" contains the subfolders "R" and "stan".
  - the R subfolder contains the code used to perform the analysis. The scripts to replicate results are named with logic order (step1, step2 etc.). Supporting functions file contains custom functions that are used in the other scripts. Appendix_S1 contains the code used for the simulation study described in Appendix_A
  - the stan folder contains all the stan models representing model variants described in the manuscript. Stan files requires compilation, which create large files. In the folders are only provided the compiled files for the best model variants for space reason.
 
