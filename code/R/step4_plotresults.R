@@ -209,7 +209,7 @@ plot.M2=ggpubr::ggarrange(p.r.m2,p.t.m2,p.f.m2, ncol=3, legend = F, labels = c("
 plot.effect=ggpubr::ggarrange(plot.M1, plot.M2,ncol=1, 
                               common.legend = T, legend.grob = ggpubr::get_legend(p.f.m2),
                       legend='bottom');plot.effect
-ggsave(plot=plot.effect, 'results/plots/covars_effect.jpeg', width = 20, height = 15, units='cm')
+ggsave(plot=plot.effect, 'results/plots/Figure3.jpeg', width = 20, height = 15, units='cm', dpi=500)
 
 ## IGR curve ####
 M12.data$temp=M12.data$Temperature
@@ -370,7 +370,7 @@ p4=ggplot(data=Mcomb.resp[round(Mcomb.resp$R, digits=2)==0.86,], aes(x=t, y=IGR.
   labs(color='T (C°)', fill='T (C°)')+
   scale_x_continuous(breaks = seq(0,120,30))
 pc4=ggpubr::ggarrange(pc1,p4, ncol=2, labels = c("a)", "b)"))
-ggsave(plot=pc4, 'results/plots/prediction_combined_pubr2.jpeg', width = 20, height = 10, units='cm')
+ggsave(plot=pc4, 'results/plots/Figure4.jpeg', width = 20, height = 10, units='cm', dpi=500)
 
 
 ### validation beyond
@@ -464,7 +464,7 @@ pcc=grid.arrange(tgr,
                  
                  ncol = 1, heights = c(0.05, 1));pcc  # Row label on the left
 
-ggsave(plot=pcc, 'results/plots/prediction_beyond.jpeg', width = 10, height = 10, units='cm')
+ggsave(plot=pcc, 'results/plots/Figure5.jpeg', width = 10, height = 10, units='cm', dpi=500)
 
 ej=mean(abs(xx.dat$residuals))
 MAD=mean(abs(xx.dat$igr.mu-mean(xx.dat$igr.mu)))
@@ -513,7 +513,7 @@ p2=ggplot(data=resp2.df, aes(x=x,y=y, color=factor(beta2), linetype=factor(beta1
 
 p3=ggpubr::ggarrange(p1,p2, labels = c("a)", "b)"))
 
-ggsave(plot=p3,'results/plots/effect2.jpeg', width = 25, height = 8, units='cm')
+ggsave(plot=p3,'results/plots/Figure2.jpeg', width = 20, height = 8, units='cm', dpi=500)
 
 
 
