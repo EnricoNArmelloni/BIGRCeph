@@ -10,7 +10,7 @@ setwd(project.dir)
 
 # libraries and functions
 library(tidyverse)
-library(loo)
+#library(loo)
 library(bayesplot)
 library(readxl)
 source('code/R/supporting_functions.R')

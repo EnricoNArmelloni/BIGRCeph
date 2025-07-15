@@ -456,19 +456,62 @@ pcc=ggplot(data=xx.dat, aes(group=1))+
   geom_ribbon(data=M2.resp,aes(x=t, ymin=IGR.lo, ymax=IGR.hi, group = 1), alpha=0.2)+
   ylab(expression(paste(IGR, ' (% body weight *',  day^-1,")")));pcc
 
+#saveRDS(xx.dat, 'results/plots/data7.RDS')
 
 tgr=textGrob("R'", gp = gpar(fontsize = 8, fontface = "bold"))
 tgc=textGrob("T°", gp = gpar(fontsize = 8, fontface = "bold"), rot=-90)
 pcc=grid.arrange(tgr,
                  arrangeGrob(pcc,tgc,  nrow = 1, widths  = c(1, 0.05)),  # Column label at the top
-                 
                  ncol = 1, heights = c(0.05, 1));pcc  # Row label on the left
 
-ggsave(plot=pcc, 'results/plots/Figure5.jpeg', width = 10, height = 10, units='cm', dpi=500)
+pright=ggarrange(p7c,p7d, labels=c('c)', 'd)'), ncol=1)
+p7=ggarrange(pcc,p7b,pright, ncol=3, labels=c('a)', 'b)'));p7
+
+ggsave(plot=p7, 'results/plots/Figure7.jpeg', width = 27, height = 14, units='cm', dpi=500)
 
 ej=mean(abs(xx.dat$residuals))
 MAD=mean(abs(xx.dat$igr.mu-mean(xx.dat$igr.mu)))
 ej/MAD ### MASE
+
+dat7=readRDS("C:/Users/e.armelloni/OneDrive/Lezioni/Lavoro/PhD/Activities/Task5/analysis/BIGRCeph/results/plots/plotdata.RDS")
+
+
+##
+p7d=dat7[[3]]%>%
+ggplot(aes(x=year, y=mu.t, color=season))+
+  geom_line()+
+  geom_point()+
+  scale_color_viridis_d()+
+  theme(legend.position = 'bottom')+
+  labs(fill='Season', color='Season')+
+  ylab('Mean seasonal T°')+
+  xlab('Year')
+
+p7c=dat7[[2]]%>%
+ggplot(aes(x=year, y=w.mu, color=source, group=source))+
+  geom_line()+
+  geom_point()+
+  geom_ribbon(aes(ymin=w.mu-w.sd,ymax=w.mu+w.sd, fill=source), color=NA,alpha=0.1)+
+  theme(legend.position = 'none')+
+  scale_color_viridis_d()+
+  ylab('log Weight (g)')+
+  xlab('Year')+
+  scale_fill_viridis_d()
+
+p7b=dat7[[1]]%>%
+ggplot()+
+  geom_density(aes(x=(w), group=source, fill=source), alpha=0.2)+
+  scale_fill_viridis_d()+
+  ylab('Density')+
+  xlab('Weight (grams)')+
+  theme(legend.position = 'top')+
+  labs(fill='Data')
+
+
+
+
+
+
 
 # Compute Coverage Probability
 df <- xx.dat %>%

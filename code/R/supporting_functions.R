@@ -81,6 +81,18 @@ format.posteriors=function(x.model){
   return(x.post.matrix)
 }
 
+generate.transformation=function(){
+  
+  temp.vec=data.frame(temp=seq(12.5,27, length.out=1000),
+                      z2=seq(0, 1, length.out=1000))
+  temp.vec$temp=round(temp.vec$temp, 2)
+  
+  food.vec=data.frame(Rcomma=seq(0,1.66, length.out=166),
+                      z1=seq(0, 1, length.out=166))
+  food.vec$Rcomma=round(food.vec$Rcomma, 2)
+  return(list(temp.vec, food.vec))
+  
+}
 
 ## best models formulas ####
 
@@ -94,6 +106,101 @@ M2=function(A,b1,b4a,b2,b3,B,C,t,tem,R,Fi){
   resp=A*(T_t^b4a)*(R*Fi)^b1 + (B*(b2*T_t + b3*T_t^2) * (R*Fi)^b1) * exp(-t * C)
   return(resp)
 }
+
+mean.integral=function(x, aa,bF1,bT1,bT2,mu,sigma,
+                       R,Fi1,Fi2,tem,
+                       sigma_obs1, sigma_obs2,
+                       A,bTA,B,bF2,bTB1,bTB2,C,g1 = 16, g2 = 41){
+  T_t=tem+0.5
+  m1=(aa*(R*Fi1)^bF1*(bT1*T_t+bT2*T_t^2))*exp(-(x-mu)^2/( 2 * sigma^2))
+  #m1=rnorm(n=1, mean=m1, sd=sigma_obs1)
+  
+  m2=A*(T_t^bTA)*(R*Fi2)^bF2+(B*(bTB1*T_t + bTB2*T_t^2)*(R*Fi2)^bF2)*exp(-x * C)
+  #m2=rnorm(n=1, mean=m2, sd=sigma_obs2)
+  phi0=data.frame(t=x,phi=NA)
+  phi0$phi=ifelse(phi0$t<g1,0,
+                  ifelse(phi0$t>g2,1,
+                         1 / (1 + exp(-0.25 * (x - (g1+g2)/2)))))
+  phi=phi0$phi
+  # Combine functions with sigmoid transition
+  result=(1 - phi) * m1 + phi * m2 
+  return(result)
+}
+
+# prediction functions ####
+predict.igr=function(M1.posteriors, 
+                     M2.posteriors,
+                     time.vec,
+                     experimental.temperature, 
+                     proportion.libitum,
+                     prey, report.type=NULL){
+  
+  ### transform food and temperature
+  exp.temp=temp.vec[abs(temp.vec$temp - experimental.temperature) == min(abs(temp.vec$temp-experimental.temperature)), ]$z2
+  exp.food=food.vec[food.vec$Rcomma==proportion.libitum,]$z1
+  
+  ### posterior predictions
+  m1.store=matrix(nrow = nrow(M1.posteriors), ncol=length(time.vec))
+  m2.store=matrix(nrow = nrow(M2.posteriors), ncol=length(time.vec))
+  for(i in 1:length(time.vec)){  
+    m1.pred=data.frame(pred=M1(a=M1.posteriors$a,
+                               b1=M1.posteriors$bF,
+                               b2=M1.posteriors$bT1,
+                               b3=M1.posteriors$bT2,
+                               sigma=M1.posteriors$`sigma[28]`,
+                               mu=M1.posteriors$mu,
+                               t=time.vec[i],
+                               tem=exp.temp,
+                               Fi=M1.posteriors[,paste0('F[',index.F.M1[index.F.M1$main_prey==prey,]$Index.food,']')],
+                               R=exp.food))
+    m1.pred$pred=as.numeric(mapply(function(mu, sigma) rnorm(n = 1, mean = mu, sd = sigma), m1.pred$pred, 
+                                   apply(M1.posteriors[,grep('obs_erro', names(M1.posteriors))],1,mean)))
+    m1.store[,i]=m1.pred$pred
+    
+    m2.pred=data.frame(pred=M2(A=M2.posteriors$A,
+                               b1=M2.posteriors$bF,
+                               b4a=M2.posteriors$bTA,
+                               b2=M2.posteriors$bTB1,
+                               b3=M2.posteriors$bTB2,
+                               B=M2.posteriors$`B[39]`,
+                               C=M2.posteriors$C,
+                               t=time.vec[i],
+                               tem=exp.temp,
+                               Fi=M2.posteriors[,paste0('F[',index.F.M2[index.F.M2$main_prey==prey,]$Index.food,']')],
+                               R=exp.food))
+    m2.pred$pred=as.numeric(mapply(function(mu, sigma) rnorm(n = 1, mean = mu, sd = sigma), m2.pred$pred, 
+                                   apply(M2.posteriors[,grep('obs_erro', names(M2.posteriors))],1,mean)))
+    m2.store[,i]=m2.pred$pred
+    
+  }
+  m1.store=as.data.frame(m1.store)
+  names(m1.store)=paste0('t', time.vec)
+  m2.store=as.data.frame(m2.store)
+  names(m2.store)=paste0('t', time.vec)
+  
+  ## apply sigmoid trnasition
+  m.comb=as.data.frame(apply_sigmoid_row(m1.store,m2.store,time.vec))
+  
+  if(!is.null(report.type)){
+    return(m.comb)  
+    
+  }else{
+    Mcomb.resp=m.comb%>%
+      dplyr::mutate(Temperature=experimental.temperature, Food_type=prey, Food_R=exp.food)%>%
+      pivot_longer(-c(Temperature, Food_type, Food_R), names_to = 't', values_to = 'IGR')%>%
+      dplyr::mutate(t=as.numeric(str_remove(t,'t')))%>%
+      dplyr::group_by(t,Temperature,Food_type, Food_R)%>%
+      dplyr::summarise(IGR.mu=mean(IGR, probs=c(0.5)),
+                       IGR.lo=quantile(IGR, probs=c(0.1)),
+                       IGR.hi=quantile(IGR, probs=c(0.9)))
+    return(Mcomb.resp)  
+  }
+}
+
+
+
+
+
 
 # estimation models ####
 # EM1
