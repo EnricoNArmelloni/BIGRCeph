@@ -4,10 +4,11 @@ Please send issues and questions to: <enrico.e.armelloni@gmail.com>
 # Description
 
 The repository contains the data and code supporting the manuscript
-“BIGRCeph: A Bayesian Hierarchical Model for Instantaneous Growth Rate
-of Cephalopods - Application to published aquaculture experimental data
-for sub-adult Common cuttlefish (*Sepia officinalis* Linnaeus, 1758)
-under varying temperature and food conditions”.
+Armelloni, E. N., Scarcella, G., and Punt, A. E. 2025. Integrating
+published experimental data and hierarchical bayesian modeling: a model
+for common cuttlefish (Sepia officinalis Linnaeus, 1758) growth to
+improve predictions for aquaculture and wild stocks. Ecological
+Informatics: 103345 \[<https://doi.org/10.1016/j.ecoinf.2025.103345>\]
 
 The code and the models here reported serves to (i) fit model variants
 for the instantaneous growth rate of cephalopods to data gathered from
