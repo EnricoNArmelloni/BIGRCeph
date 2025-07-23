@@ -170,6 +170,8 @@ base.plot.food=function(xdat){
 }
 
 index.F.M1=distinct(M1.data, Index.food, main_prey)
+write.csv(index.F.M1, 'results/other_tables/prey_index_M1.csv', row.names = F)
+
 M1.post.F=M1.posteriors[,grep('F', names(M1.posteriors))]#
 M1.post.F=M1.post.F[,-grep('bF', names(M1.post.F))]#
 names(M1.post.F)=index.F.M1$main_prey
@@ -178,12 +180,18 @@ M1.post.F=M1.post.F%>%
   pivot_longer(-id, names_to = 'diet', values_to = 'post')
 
 index.F.M2=distinct(M2.data, Index.food, main_prey)
+write.csv(index.F.M2, 'results/other_tables/prey_index_M2.csv', row.names = F)
+
 M2.post.F=M2.posteriors[,grep('F', names(M2.posteriors))]#
 M2.post.F=M2.post.F[,-grep('bF', names(M2.post.F))]#
 names(M2.post.F)=index.F.M2$main_prey
 M2.post.F=M2.post.F%>%
   dplyr::mutate(id=seq(1:nrow(.)))%>%
   pivot_longer(-id, names_to = 'diet', values_to = 'post')
+
+
+
+
 
 M2.post.F%>%dplyr::group_by(diet)%>%dplyr::summarise(mean(post))
 

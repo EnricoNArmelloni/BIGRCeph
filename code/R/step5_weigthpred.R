@@ -43,7 +43,6 @@ index.F.M2=distinct(M2.data, Index.food, main_prey)
 
 # wild individual data
 obs.data=read_csv("data/wild_obs.csv")
-obs.info=read_csv("data/wild_info.csv")
 xyrs=unique(obs.data$year)
 obs.long=NULL
 set.seed(46)
@@ -238,12 +237,6 @@ p4=rbind(mean.preds, mean.obs)%>%
   ylab('log Weight (g)')+
   xlab('Year')+
   scale_fill_viridis_d();p4
-
-p.seas=obs.info%>%
-  ggplot(aes(x=year, y=DAH))+
-  geom_line()+
-  geom_point()+
-  labs(fill='Season');p.seas
 
 p.temp=obs.temp%>%
   dplyr::mutate(season=ifelse(month%in%5:6, 'Spring',ifelse(month%in%7:9,'Summer','Autumn')))%>%

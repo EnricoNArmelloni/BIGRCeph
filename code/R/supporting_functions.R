@@ -133,7 +133,7 @@ predict.igr=function(M1.posteriors,
                      time.vec,
                      experimental.temperature, 
                      proportion.libitum,
-                     prey, report.type=NULL){
+                     prey, report.type=NULL,temp.vec,food.vec){
   
   ### transform food and temperature
   exp.temp=temp.vec[abs(temp.vec$temp - experimental.temperature) == min(abs(temp.vec$temp-experimental.temperature)), ]$z2
@@ -198,7 +198,48 @@ predict.igr=function(M1.posteriors,
 }
 
 
-
+predict.integral=function(M1.posteriors, M2.posteriors, season.file, nsamp=2000,temp.vec,food.vec){
+  
+  ## empty storage
+  pop.season=matrix(nrow=nsamp, ncol=nrow(season.file)+1)
+  pop.season[,1]=hatch.distr
+  gr.season=matrix(nrow=nsamp, ncol=nrow(season.file))
+  for(t in 1:nrow(season.file)){
+    x.temp=temp.vec[abs(temp.vec$temp - season.file[t,]$temp) == min(abs(temp.vec$temp-season.file[t,]$temp)), ]$z2
+    x.food=food.vec[food.vec$Rcomma==season.file[t,]$proportion.libitum,]$z1
+    food.type.m1=M1.posteriors[,paste0('F[',index.F.M1[index.F.M1$main_prey==season.file[t,]$food_type,]$Index.food,']')]
+    food.type.m2=M2.posteriors[,paste0('F[',index.F.M2[index.F.M2$main_prey==season.file[t,]$food_type,]$Index.food,']')]
+    
+    gr.est=quadv(mean.integral, a=season.file[t,]$day.ini, b=season.file[t,]$day.fin, 
+                 aa=M1.posteriors$a,
+                 bF1=M1.posteriors$bF,
+                 bT1=M1.posteriors$bT1,
+                 bT2=M1.posteriors$bT2,
+                 mu=M1.posteriors$mu,
+                 sigma=M1.posteriors$`sigma[28]`,
+                 R=x.food,
+                 Fi1=food.type.m1,
+                 Fi2=food.type.m2,
+                 tem=x.temp,
+                 A= M2.posteriors$A,
+                 bTA= M2.posteriors$bTA,
+                 bF2= M2.posteriors$bF,
+                 B=M2.posteriors$`B[39]`,
+                 bTB1= M2.posteriors$bTB1,
+                 bTB2= M2.posteriors$bTB2,
+                 sigma_obs1= M1.posteriors$sigma_obs,
+                 sigma_obs2= M2.posteriors$sigma_obs,
+                 C= M2.posteriors$C)
+    #gr.vec=gr.est$Q/(day.fin-day.ini)
+    gr.season[,t]=gr.est$Q/(season.file[t,]$day.fin-season.file[t,]$day.ini)
+    pop.season[,t+1]=un.gr.formula(w1=pop.season[,t], 
+                                   gr=gr.season[,t], 
+                                   t1=season.file[t,]$day.ini, 
+                                   t2=season.file[t,]$day.fin) 
+    
+  }
+  return(list(igr=gr.season, w=pop.season))
+}
 
 
 
